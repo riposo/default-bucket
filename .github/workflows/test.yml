@@ -12,8 +12,6 @@ jobs:
     strategy:
       matrix:
         go-version: [1.16.x]
-    env:
-      GOPRIVATE: github.com/riposo
     steps:
       - name: Fetch staticcheck
         uses: engineerd/configurator@v0.0.6
@@ -38,9 +36,6 @@ jobs:
         uses: actions/setup-go@v2
         with:
           go-version: ${{ matrix.go-version }}
-      - name: Grant private modules access
-        run: |
-          git config --global url."https://${{ secrets.PAT }}:x-oauth-basic@${{ env.GOPRIVATE }}".insteadOf "https://${{ env.GOPRIVATE }}"
       - name: Run tests
         run: make test
       - name: Run staticcheck
