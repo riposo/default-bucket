@@ -38,16 +38,13 @@ func (c *Config) serveHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	bucketID := hex.EncodeToString(c.DefaultBucket.Secret.Encode(req.txn.User.ID)[:16])
-	if done, err := createBucket(w, req, bucketID); err != nil {
+	if err := createBucket(req, bucketID); err != nil {
 		api.Render(w, err)
-		return
-	} else if done {
 		return
 	}
 
-	if done, err := createCollection(w, req, bucketID); err != nil {
+	if err := createCollection(req, bucketID); err != nil {
 		api.Render(w, err)
-	} else if done {
 		return
 	}
 
@@ -89,16 +86,16 @@ func (c *Config) serveHTTP(w http.ResponseWriter, r *http.Request) {
 	req.mux.ServeHTTP(w, r2)
 }
 
-func createBucket(parent http.ResponseWriter, req *request, bucketID string) (bool, error) {
+func createBucket(req *request, bucketID string) error {
 	// skip if bucket-create request is in progress
 	if strings.HasSuffix(req.URL.Path, "/buckets/default") && req.Method == http.MethodPut {
-		return false, nil
+		return nil
 	}
 
-	return createResource(parent, req, riposo.Path("/buckets/"+bucketID))
+	return createResource(req.txn, riposo.Path("/buckets/"+bucketID))
 }
 
-func createCollection(parent http.ResponseWriter, req *request, bucketID string) (bool, error) {
+func createCollection(req *request, bucketID string) error {
 	// determine relevant collection path
 	var relevant riposo.Path
 	req.path.Traverse(func(sub riposo.Path) {
@@ -109,48 +106,44 @@ func createCollection(parent http.ResponseWriter, req *request, bucketID string)
 
 	// skip if request doesn't involve a collection
 	if relevant == "" {
-		return false, nil
+		return nil
 	}
 
 	// skip if collection-create request is in progress
 	if req.path == relevant && req.Method == http.MethodPut {
-		return false, nil
+		return nil
 	}
 
-	return createResource(parent, req, relevant)
+	// create collection under the real path
+	realPath := strings.Replace(string(relevant), "/buckets/default", "/buckets/"+bucketID, 1)
+	return createResource(req.txn, riposo.Path(realPath))
 }
 
-func createResource(parent http.ResponseWriter, req *request, path riposo.Path) (bool, error) {
+var stdModel = api.StdModel()
+
+func createResource(txn *api.Txn, path riposo.Path) error {
 	// extract objID and resKey
 	objID := path.ObjectID()
 	resKey := path.ResourceName() + ".created"
 
 	// skip if resource was already created (e.g. as part of a batch request)
 	var created []string
-	if val, ok := req.txn.Data[resKey]; ok {
+	if val, ok := txn.Data[resKey]; ok {
 		created = val.([]string)
 	}
 	if containsString(created, objID) {
-		return false, nil
+		return nil
 	}
 
-	// setup sub-request with clean context
-	ctx := context.WithValue(req.Context(), chi.RouteCtxKey, nil)
-	r, err := http.NewRequestWithContext(ctx, http.MethodPut, path.String(), strings.NewReader(`{}`))
+	// create
+	err := stdModel.Create(txn, path.WithObjectID("*"), &schema.Resource{Data: &schema.Object{ID: objID}})
 	if err != nil {
-		return false, err
-	}
-
-	// perform request, delegate failures
-	w := &responseDelegator{parent: parent}
-	req.mux.ServeHTTP(w, r)
-	if w.Failed() {
-		return true, nil
+		return err
 	}
 
 	// remember resource as created
-	req.txn.Data[resKey] = append(created, objID)
-	return false, nil
+	txn.Data[resKey] = append(created, objID)
+	return nil
 }
 
 type request struct {
@@ -172,10 +165,6 @@ func newRequest(r *http.Request) *request {
 	}
 }
 
-func (r *request) Context() context.Context {
-	return r.ctx
-}
-
 func containsString(vv []string, s string) bool {
 	for _, v := range vv {
 		if s == v {
@@ -183,48 +172,4 @@ func containsString(vv []string, s string) bool {
 		}
 	}
 	return false
-}
-
-// --------------------------------------------------------------------
-
-type responseDelegator struct {
-	Code   int
-	header http.Header
-	parent http.ResponseWriter
-}
-
-func (rw *responseDelegator) Header() http.Header {
-	m := rw.header
-	if m == nil {
-		m = make(http.Header)
-		rw.header = m
-	}
-	return m
-}
-
-func (rw *responseDelegator) Write(buf []byte) (int, error) {
-	rw.WriteHeader(http.StatusOK)
-	// propagate on non-2xx
-	if rw.Failed() {
-		return rw.parent.Write(buf)
-	}
-	return len(buf), nil
-}
-
-func (rw *responseDelegator) WriteHeader(code int) {
-	if rw.Code == 0 {
-		rw.Code = code
-
-		// propagate on non-2xx
-		if rw.Failed() {
-			for k := range rw.header {
-				rw.parent.Header().Set(k, rw.header.Get(k))
-			}
-			rw.parent.WriteHeader(rw.Code)
-		}
-	}
-}
-
-func (rw *responseDelegator) Failed() bool {
-	return rw.Code >= 300
 }

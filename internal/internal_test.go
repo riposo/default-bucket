@@ -47,22 +47,14 @@ var _ = Describe("Config", func() {
 		Expect(txn.Abort()).To(Succeed())
 	})
 
-	It("should reject unauthenticated requests", func() {
+	It("rejects unauthenticated requests", func() {
 		txn.User = mock.User(riposo.Everyone)
 
 		w := serve(mock.Request(txn, http.MethodGet, "/buckets/default", nil))
 		Expect(w.Code).To(Equal(http.StatusForbidden))
 	})
 
-	It("should propagate internal errors", func() {
-		txn.User = mock.User("account:bob")
-
-		// bob cannot create buckets
-		w := serve(mock.Request(txn, http.MethodGet, "/buckets/default", nil))
-		Expect(w.Code).To(Equal(http.StatusForbidden))
-	})
-
-	It("should re-route requests", func() {
+	It("re-routes requests", func() {
 		w := serve(mock.Request(txn, http.MethodPatch, "/buckets/default", strings.NewReader(`{"data":{"meta":"data"}}`)))
 		Expect(w.Code).To(Equal(http.StatusOK))
 		Expect(w.Body.Bytes()).To(MatchJSON(`{
@@ -77,7 +69,7 @@ var _ = Describe("Config", func() {
 		}`))
 	})
 
-	It("should create default buckets via PUT", func() {
+	It("creates default buckets via PUT", func() {
 		w := serve(mock.Request(txn, http.MethodPut, "/buckets/default", strings.NewReader(`{"data":{"id":"default"}}`)))
 		Expect(w.Code).To(Equal(http.StatusCreated))
 		Expect(w.Body.Bytes()).To(MatchJSON(`{
@@ -91,7 +83,7 @@ var _ = Describe("Config", func() {
 		}`))
 	})
 
-	It("should auto-provision buckets", func() {
+	It("auto-provisions buckets", func() {
 		w := serve(mock.Request(txn, http.MethodGet, "/buckets", nil))
 		Expect(w.Code).To(Equal(http.StatusOK))
 		Expect(w.Body.Bytes()).To(MatchJSON(`{"data": []}`))
@@ -112,7 +104,7 @@ var _ = Describe("Config", func() {
 		}`))
 	})
 
-	It("should create collections via PUT", func() {
+	It("creates collections via PUT", func() {
 		w := serve(mock.Request(txn, http.MethodPut, "/buckets/default/collections/foo", strings.NewReader(`{}`)))
 		Expect(w.Code).To(Equal(http.StatusCreated))
 		Expect(w.Body.Bytes()).To(MatchJSON(`{
@@ -124,12 +116,34 @@ var _ = Describe("Config", func() {
 				"write": ["account:alice"]
 			}
 		}`))
+
+		w = serve(mock.Request(txn, http.MethodGet, "/buckets", nil))
+		Expect(w.Code).To(Equal(http.StatusOK))
+		Expect(w.Body.Bytes()).To(MatchJSON(`{
+			"data": [
+				{
+					"id": "a53aa5f020d80439829eda9f6e3a4502",
+					"last_modified": 1515151515677
+				}
+			]
+		}`))
 	})
 
-	It("should auto-provision collections", func() {
+	It("auto-provisions collections", func() {
 		w := serve(mock.Request(txn, http.MethodGet, "/buckets/default/collections", nil))
 		Expect(w.Code).To(Equal(http.StatusOK))
 		Expect(w.Body.Bytes()).To(MatchJSON(`{"data": []}`))
+
+		w = serve(mock.Request(txn, http.MethodGet, "/buckets", nil))
+		Expect(w.Code).To(Equal(http.StatusOK))
+		Expect(w.Body.Bytes()).To(MatchJSON(`{
+			"data": [
+				{
+					"id": "a53aa5f020d80439829eda9f6e3a4502",
+					"last_modified": 1515151515677
+				}
+			]
+		}`))
 
 		w = serve(mock.Request(txn, http.MethodGet, "/buckets/default/collections/foo/records", nil))
 		Expect(w.Code).To(Equal(http.StatusOK))
@@ -144,6 +158,23 @@ var _ = Describe("Config", func() {
 					"last_modified": 1515151515677
 				}
 			]
+		}`))
+	})
+
+	It("allows default buckets without explicit permission", func() {
+		// bob cannot create buckets
+		txn.User = mock.User("account:bob")
+
+		w := serve(mock.Request(txn, http.MethodGet, "/buckets/default", nil))
+		Expect(w.Code).To(Equal(http.StatusOK))
+		Expect(w.Body.Bytes()).To(MatchJSON(`{
+			"data": {
+				"id": "b40605613e14af3f78da6c99efe88224",
+				"last_modified": 1515151515677
+			},
+			"permissions": {
+				"write": ["account:bob"]
+			}
 		}`))
 	})
 })
