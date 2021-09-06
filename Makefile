@@ -1,7 +1,7 @@
-default: test
+default: test lint
 
 test:
 	go test ./...
 
-staticcheck:
-	staticcheck ./...
+lint:
+	golangci-lint run
