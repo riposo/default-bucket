@@ -119,7 +119,7 @@ func createCollection(req *request, bucketID string) error {
 	return createResource(req.txn, riposo.Path(realPath))
 }
 
-var stdModel = api.StdModel()
+var stdModel = api.DefaultModel{}
 
 func createResource(txn *api.Txn, path riposo.Path) error {
 	// extract objID and resKey

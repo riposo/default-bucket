@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	. "github.com/bsm/ginkgo"
+	. "github.com/bsm/gomega"
 	"github.com/riposo/default-bucket/internal"
 	"github.com/riposo/riposo/pkg/api"
 	"github.com/riposo/riposo/pkg/mock"
@@ -31,9 +31,9 @@ var _ = Describe("Config", func() {
 				"read":  {"account:bob"},
 			},
 		})
-		rts.Resource("/buckets", api.StdModel())
-		rts.Resource("/buckets/{bucket_id}/collections", api.StdModel())
-		rts.Resource("/buckets/{bucket_id}/collections/{collection_id}/records", api.StdModel())
+		rts.Resource("/buckets", nil)
+		rts.Resource("/buckets/{bucket_id}/collections", nil)
+		rts.Resource("/buckets/{bucket_id}/collections/{collection_id}/records", nil)
 
 		cfg := new(internal.Config)
 		cfg.DefaultBucket.Secret = internal.HashSecret("foo")
