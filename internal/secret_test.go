@@ -4,8 +4,8 @@ import (
 	"encoding/hex"
 	"strings"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	. "github.com/bsm/ginkgo"
+	. "github.com/bsm/gomega"
 	"github.com/riposo/default-bucket/internal"
 )
 
