@@ -20,7 +20,7 @@ import (
 type Config struct {
 	DefaultBucket struct {
 		Secret HashSecret
-	} `split_words:"true"`
+	} `yaml:"default_bucket"`
 }
 
 // Mount mounts the config onto the routes.

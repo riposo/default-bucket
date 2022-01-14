@@ -9,11 +9,11 @@ documentation.
 
 ## Configuration
 
-The following environment variable can be used to configure Riposo:
+The following additional configuration options can be used:
 
-| Variable                            | Description                                                              | Default           |
-| ----------------------------------- | ------------------------------------------------------------------------ | ----------------- |
-| `RIPOSO_DEFAULT_BUCKET_HASH_SECRET` | Hex-encoded secret used for internal signatures, see (Secrets)(#secrets) | _none_ (required) |
+| Option                  | Type     | Description                                                               | Default           |
+| ----------------------- | -------- | ------------------------------------------------------------------------- | ----------------- |
+| `default_bucket.secret` | `string` | Hex-encoded secret used for internal signatures, see (Secrets)(#secrets)` | _none_ (required) |
 
 ### Secrets
 
@@ -32,7 +32,7 @@ tr -dc 'a-f0-9' < /dev/urandom | head -c64; echo
 
 ## License
 
-Copyright 2021 Black Square Media Ltd
+Copyright 2021-2022 Black Square Media Ltd
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this material except in compliance with the License.

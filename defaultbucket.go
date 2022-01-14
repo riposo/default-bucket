@@ -14,9 +14,9 @@ func init() {
 			"description": "The default bucket is an alias for a personal bucket where collections are created implicitly.",
 			"url":         "https://github.com/riposo/default-bucket",
 		},
-		func(rts *api.Routes) error {
+		func(rts *api.Routes, hlp riposo.Helpers) error {
 			cfg := new(internal.Config)
-			if err := riposo.ParseEnv(cfg); err != nil {
+			if err := hlp.ParseConfig(cfg); err != nil {
 				return err
 			}
 			cfg.Mount(rts)
