@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	. "github.com/bsm/ginkgo"
+	. "github.com/bsm/ginkgo/v2"
 	. "github.com/bsm/gomega"
 	"github.com/riposo/default-bucket/internal"
 	"github.com/riposo/riposo/pkg/api"
@@ -26,7 +26,7 @@ var _ = Describe("Config", func() {
 
 	BeforeEach(func() {
 		rts = api.NewRoutes(&api.Config{
-			Guard: api.Guard{
+			Authz: api.Authz{
 				"write": {"account:alice"},
 				"read":  {"account:bob"},
 			},

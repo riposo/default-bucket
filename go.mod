@@ -3,10 +3,10 @@ module github.com/riposo/default-bucket
 go 1.17
 
 require (
-	github.com/bsm/ginkgo v1.16.5
+	github.com/bsm/ginkgo/v2 v2.0.0
 	github.com/bsm/gomega v1.17.0
 	github.com/go-chi/chi/v5 v5.0.7
-	github.com/riposo/riposo v0.1.1-0.20220114131000-b14a67545021
+	github.com/riposo/riposo v0.1.1-0.20220124111015-eb8388408d10
 	github.com/valyala/bytebufferpool v1.0.0
 	golang.org/x/crypto v0.0.0-20220112180741-5e0467b6c7ce
 )

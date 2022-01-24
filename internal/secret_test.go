@@ -4,7 +4,7 @@ import (
 	"encoding/hex"
 	"strings"
 
-	. "github.com/bsm/ginkgo"
+	. "github.com/bsm/ginkgo/v2"
 	. "github.com/bsm/gomega"
 	"github.com/riposo/default-bucket/internal"
 )
