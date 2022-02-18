@@ -44,7 +44,7 @@ var _ = Describe("Config", func() {
 	})
 
 	AfterEach(func() {
-		Expect(txn.Abort()).To(Succeed())
+		Expect(txn.Rollback()).To(Succeed())
 	})
 
 	It("rejects unauthenticated requests", func() {
