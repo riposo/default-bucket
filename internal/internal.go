@@ -98,10 +98,12 @@ func createBucket(req *request, bucketID string) error {
 func createCollection(req *request, bucketID string) error {
 	// determine relevant collection path
 	var relevant riposo.Path
-	req.path.Traverse(func(sub riposo.Path) {
+	req.path.Traverse(func(sub riposo.Path) bool {
 		if !sub.IsNode() && sub.ResourceName() == "collection" {
 			relevant = sub
+			return false
 		}
+		return true
 	})
 
 	// skip if request doesn't involve a collection
