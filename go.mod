@@ -6,8 +6,7 @@ require (
 	github.com/bsm/ginkgo/v2 v2.1.3
 	github.com/bsm/gomega v1.18.1
 	github.com/go-chi/chi/v5 v5.0.7
-	github.com/riposo/riposo v0.1.1-0.20220318124303-d2d9c4ffeb13
-	github.com/valyala/bytebufferpool v1.0.0
+	github.com/riposo/riposo v0.1.1-0.20220321112534-b11204387a08
 	golang.org/x/crypto v0.0.0-20220315160706-3147a52a75dd
 )
 
