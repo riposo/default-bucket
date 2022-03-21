@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"bytes"
 	"context"
 	"encoding/hex"
 	"encoding/json"
@@ -11,9 +10,9 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/riposo/riposo/pkg/api"
+	"github.com/riposo/riposo/pkg/bufferpool"
 	"github.com/riposo/riposo/pkg/riposo"
 	"github.com/riposo/riposo/pkg/schema"
-	"github.com/valyala/bytebufferpool"
 )
 
 // Config supports custom configuration.
@@ -64,8 +63,8 @@ func (c *Config) serveHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// re-encode payload
-		buf := bytebufferpool.Get()
-		defer bytebufferpool.Put(buf)
+		buf := bufferpool.Get()
+		defer bufferpool.Put(buf)
 
 		enc := json.NewEncoder(buf)
 		enc.SetEscapeHTML(true)
@@ -74,7 +73,7 @@ func (c *Config) serveHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		body = io.NopCloser(bytes.NewReader(buf.Bytes()))
+		body = io.NopCloser(buf)
 		contentLen = buf.Len()
 	}
 
